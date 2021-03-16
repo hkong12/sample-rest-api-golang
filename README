@@ -1,0 +1,36 @@
+This project deployed an API service to AWS environment as ECS
+
+## File List 
+Golang API service
+ - server.go (source file)
+ - server_test.go (unit test file)
+ - go.mod, go.sum (go module files which list all the dependencies)
+
+ Terraform
+ - main.tf (AWS infrastructure)
+
+ Container
+ - Dockerfile (Used to build the container)
+
+ Jenkins
+ - task_definition.json (defines the ECS task)
+ - jenkins_build.sh (Shell command used in Jenkins freestyle pipeline)
+
+ Final test
+ - curl_api_test.sh (A few curl command to test api service)
+
+ ## Process
+ 1. Deploy AWS infra
+    $ cd ./terraform/
+    $ terraform init
+    $ terraform plan
+    $ terraform apply
+
+2. Build Jenkins freestyle pipeline
+    * Use github as source version control backend
+    * Configure build trigger webhook
+    * Add jenkins_build.sh content to new build job execute Shell
+
+3. Update code to github repository
+    * Everytime git push to master branch
+    * Jenkins job is automatically triggered to build the docker image and update to AWS ECS

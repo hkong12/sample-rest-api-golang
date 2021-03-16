@@ -97,7 +97,7 @@ resource "aws_route_table" "private" {
 
   route {
       cidr_block = "0.0.0.0/0"
-      gateway_id = aws_nat_gateway.gw[count.index].id
+      nat_gateway_id = aws_nat_gateway.gw[count.index].id
   }
 
   tags = {
@@ -153,6 +153,7 @@ resource "aws_lb_target_group" "target" {
   port     = 80
   protocol = "HTTP"
   vpc_id   = aws_vpc.main.id
+  target_type = "ip"
 
   health_check {
     interval    = 6
@@ -199,6 +200,14 @@ resource "aws_security_group" "ecs_sg" {
     protocol    = "tcp"
     cidr_blocks = local.public_subnet_cidrs
   }
+
+  egress {
+    description = "allow all outbound traffic"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 }
 
 # ECS service
@@ -207,22 +216,17 @@ resource "aws_ecs_service" "api" {
   cluster         = aws_ecs_cluster.ecs.id
   task_definition = aws_ecs_task_definition.api.arn
   desired_count   = 1
-  launch_type     = "EC2"
+  launch_type     = "FARGATE"
 
   load_balancer {
     target_group_arn = aws_lb_target_group.target.arn
     container_name   = "api"
-    container_port   = 1323
+    container_port   = 80
   }
 
   network_configuration {
     subnets = aws_subnet.private.*.id
     security_groups = [ aws_security_group.ecs_sg.id ] 
-  }
-
-  placement_constraints {
-    type       = "memberOf"
-    expression = "attribute:ecs.availability-zone in [ap-southeast-1a, ap-southeast-1b]"
   }
 }
 
@@ -233,7 +237,7 @@ resource "aws_ecs_task_definition" "api" {
 [
     {
       "name": "api",
-      "image": "xueerk/sample-api:7",
+      "image": "xueerk/sample-api:8",
       "cpu": 10,
       "memory": 512,
       "essential": true,
@@ -247,12 +251,9 @@ resource "aws_ecs_task_definition" "api" {
 ]
 TASK_DEFINITION
   network_mode          = "awsvpc"
-  requires_compatibilities = [ "EC2" ]
-
-  placement_constraints {
-    type       = "memberOf"
-    expression = "attribute:ecs.availability-zone in [ap-southeast-1a, ap-southeast-1b]"
-  }
+  requires_compatibilities = [ "FARGATE" ]
+  cpu = 256
+  memory = 512
 }
 
 # Output the URL of the ALB

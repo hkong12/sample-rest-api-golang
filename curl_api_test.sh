@@ -2,7 +2,7 @@
 
 # This file is used to run curl command and test API endpoint
 
-URL='localhost:80'
+URL='http://sample-api-lb-966673533.ap-southeast-1.elb.amazonaws.com'
 
 curl --location --request POST "$URL" \
 --header 'Content-Type: application/json' \
