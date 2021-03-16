@@ -15,6 +15,7 @@ Golang API service
  Jenkins
  - task_definition.json (defines the ECS task)
  - jenkins_build.sh (Shell command used in Jenkins freestyle pipeline)
+ - jenkins.output (Sample jenkins build job output)
 
  Final test
  - curl_api_test.sh (A few curl command to test api service)

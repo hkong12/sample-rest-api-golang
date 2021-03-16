@@ -1,0 +1,335 @@
+Started by user admin
+Running as SYSTEM
+Building in workspace /var/lib/jenkins/workspace/sample-api
+The recommended git tool is: NONE
+using credential github_cred
+ > git rev-parse --is-inside-work-tree # timeout=10
+Fetching changes from the remote Git repository
+ > git config remote.origin.url https://github.com/hkong12/sample-rest-api-golang # timeout=10
+Fetching upstream changes from https://github.com/hkong12/sample-rest-api-golang
+ > git --version # timeout=10
+ > git --version # 'git version 2.23.3'
+using GIT_ASKPASS to set credentials 
+ > git fetch --tags --force --progress -- https://github.com/hkong12/sample-rest-api-golang +refs/heads/*:refs/remotes/origin/* # timeout=10
+ > git rev-parse refs/remotes/origin/master^{commit} # timeout=10
+Checking out Revision b0844432813a822db74d98b948cc5a623df3f7b8 (refs/remotes/origin/master)
+ > git config core.sparsecheckout # timeout=10
+ > git checkout -f b0844432813a822db74d98b948cc5a623df3f7b8 # timeout=10
+Commit message: "update task_definition file"
+ > git rev-list --no-walk b0844432813a822db74d98b948cc5a623df3f7b8 # timeout=10
+[sample-api] $ /bin/sh -xe /tmp/jenkins4857063647547829599.sh
++ IMAGE_REPO_NAME=xueerk/sample-api
++ IMAGE_TAG=16
++ CLUSTER_NAME=sample-api-cluster
++ SERVICE_NAME=sample
++ TASK_FAMILY=sample-api
+++ date
++ echo 'Build started on Tue Mar 16 16:45:03 UTC 2021'
+Build started on Tue Mar 16 16:45:03 UTC 2021
++ echo 'Building the Docker image...'
+Building the Docker image...
++ docker build -t xueerk/sample-api:16 .
+Sending build context to Docker daemon    194kB
+Step 1/11 : FROM golang:alpine3.13 AS build
+ ---> 19b59f022241
+Step 2/11 : WORKDIR WORKDIR /go/src/github.com/hkong12/sample-rest-api-golang
+ ---> Using cache
+ ---> 3e034d07a56f
+Step 3/11 : ENV CGO_ENABLED=0
+ ---> Using cache
+ ---> 32619e576a12
+Step 4/11 : COPY . .
+ ---> 8a51eebbfc37
+Step 5/11 : ARG TARGETOS
+ ---> Running in ac846863024d
+Removing intermediate container ac846863024d
+ ---> 7d09aeab0f8b
+Step 6/11 : ARG TARGETARCH
+ ---> Running in c926a926b318
+Removing intermediate container c926a926b318
+ ---> e96ef943e35e
+Step 7/11 : RUN GOOS=linux GOARCH=amd64 go build -o /out/sample-api .
+ ---> Running in d7122869404a
+[91mgo: downloading github.com/labstack/echo/v4 v4.2.1
+[0m[91mgo: downloading github.com/labstack/gommon v0.3.0
+[0m[91mgo: downloading golang.org/x/crypto v0.0.0-20200820211705-5c72a883971a
+[0m[91mgo: downloading golang.org/x/net v0.0.0-20200822124328-c89045814202
+[0m[91mgo: downloading github.com/dgrijalva/jwt-go v3.2.0+incompatible
+[0m[91mgo: downloading github.com/valyala/fasttemplate v1.2.1
+[0m[91mgo: downloading golang.org/x/time v0.0.0-20201208040808-7e3f01d25324
+[0m[91mgo: downloading github.com/mattn/go-colorable v0.1.7
+[0m[91mgo: downloading github.com/mattn/go-isatty v0.0.12
+[0m[91mgo: downloading github.com/valyala/bytebufferpool v1.0.0
+[0m[91mgo: downloading golang.org/x/sys v0.0.0-20200826173525-f9321e4c35a6
+[0m[91mgo: downloading golang.org/x/text v0.3.3
+[0mRemoving intermediate container d7122869404a
+ ---> 2935c1083a02
+Step 8/11 : FROM alpine:3.12 AS bin
+ ---> 88dd2752d2ea
+Step 9/11 : COPY --from=build /out/sample-api /bin/
+ ---> Using cache
+ ---> 91944ca0750b
+Step 10/11 : EXPOSE 80
+ ---> Using cache
+ ---> 87864c64450d
+Step 11/11 : ENTRYPOINT /bin/sample-api
+ ---> Using cache
+ ---> bf48e4e84369
+Successfully built bf48e4e84369
+Successfully tagged xueerk/sample-api:16
++ docker push xueerk/sample-api:16
+The push refers to repository [docker.io/xueerk/sample-api]
+7c82289dfcab: Preparing
+33e8713114f8: Preparing
+33e8713114f8: Layer already exists
+7c82289dfcab: Layer already exists
+16: digest: sha256:60d698429ff2f7382217b3f4fa3ccf15232720c7f76c840dea0195817adf6f01 size: 739
++ echo 'Create new task definition'
+Create new task definition
++ sed -e 's;%BUILD_NUMBER%;16;g' task_definition.json
++ aws ecs register-task-definition --cli-input-json file://task_definition_16.json
+{
+    "taskDefinition": {
+        "status": "ACTIVE", 
+        "networkMode": "awsvpc", 
+        "family": "sample-api", 
+        "placementConstraints": [], 
+        "requiresAttributes": [
+            {
+                "name": "com.amazonaws.ecs.capability.docker-remote-api.1.18"
+            }, 
+            {
+                "name": "ecs.capability.task-eni"
+            }
+        ], 
+        "cpu": "256", 
+        "compatibilities": [
+            "EC2", 
+            "FARGATE"
+        ], 
+        "volumes": [], 
+        "memory": "512", 
+        "requiresCompatibilities": [
+            "FARGATE"
+        ], 
+        "taskDefinitionArn": "arn:aws:ecs:ap-southeast-1:150704819064:task-definition/sample-api:7", 
+        "containerDefinitions": [
+            {
+                "environment": [], 
+                "name": "api", 
+                "mountPoints": [], 
+                "image": "xueerk/sample-api:16", 
+                "cpu": 10, 
+                "portMappings": [
+                    {
+                        "protocol": "tcp", 
+                        "containerPort": 80, 
+                        "hostPort": 80
+                    }
+                ], 
+                "memory": 512, 
+                "essential": true, 
+                "volumesFrom": []
+            }
+        ], 
+        "revision": 7
+    }
+}
++ echo 'Update ECS service'
+Update ECS service
+++ sed 's/"$//'
+++ awk '{print $2}'
+++ tr / ' '
+++ egrep revision
+++ aws ecs describe-task-definition --task-definition sample-api
++ TASK_REVISION=7
++ aws ecs update-service --cluster sample-api-cluster --service sample --task-definition sample-api:7 --desired-count 1
+{
+    "service": {
+        "networkConfiguration": {
+            "awsvpcConfiguration": {
+                "subnets": [
+                    "subnet-075a80f3cb9525bc2", 
+                    "subnet-0ac4316ddb074ab05"
+                ], 
+                "securityGroups": [
+                    "sg-054e5385a361a166d"
+                ], 
+                "assignPublicIp": "DISABLED"
+            }
+        }, 
+        "launchType": "FARGATE", 
+        "enableECSManagedTags": false, 
+        "loadBalancers": [
+            {
+                "containerName": "api", 
+                "targetGroupArn": "arn:aws:elasticloadbalancing:ap-southeast-1:150704819064:targetgroup/sample-api-target-group/ea904198af579e70", 
+                "containerPort": 80
+            }
+        ], 
+        "desiredCount": 1, 
+        "clusterArn": "arn:aws:ecs:ap-southeast-1:150704819064:cluster/sample-api-cluster", 
+        "serviceArn": "arn:aws:ecs:ap-southeast-1:150704819064:service/sample-api-cluster/sample", 
+        "deploymentConfiguration": {
+            "maximumPercent": 200, 
+            "minimumHealthyPercent": 100
+        }, 
+        "createdAt": 1615909149.132, 
+        "healthCheckGracePeriodSeconds": 0, 
+        "schedulingStrategy": "REPLICA", 
+        "placementConstraints": [], 
+        "deployments": [
+            {
+                "status": "PRIMARY", 
+                "networkConfiguration": {
+                    "awsvpcConfiguration": {
+                        "subnets": [
+                            "subnet-075a80f3cb9525bc2", 
+                            "subnet-0ac4316ddb074ab05"
+                        ], 
+                        "securityGroups": [
+                            "sg-054e5385a361a166d"
+                        ], 
+                        "assignPublicIp": "DISABLED"
+                    }
+                }, 
+                "pendingCount": 0, 
+                "launchType": "FARGATE", 
+                "createdAt": 1615913132.605, 
+                "desiredCount": 1, 
+                "taskDefinition": "arn:aws:ecs:ap-southeast-1:150704819064:task-definition/sample-api:7", 
+                "updatedAt": 1615913132.605, 
+                "platformVersion": "1.4.0", 
+                "id": "ecs-svc/5616349259363725355", 
+                "runningCount": 0
+            }, 
+            {
+                "status": "ACTIVE", 
+                "networkConfiguration": {
+                    "awsvpcConfiguration": {
+                        "subnets": [
+                            "subnet-075a80f3cb9525bc2", 
+                            "subnet-0ac4316ddb074ab05"
+                        ], 
+                        "securityGroups": [
+                            "sg-054e5385a361a166d"
+                        ], 
+                        "assignPublicIp": "DISABLED"
+                    }
+                }, 
+                "pendingCount": 0, 
+                "launchType": "FARGATE", 
+                "createdAt": 1615912999.815, 
+                "desiredCount": 1, 
+                "taskDefinition": "arn:aws:ecs:ap-southeast-1:150704819064:task-definition/sample-api:6", 
+                "updatedAt": 1615913072.599, 
+                "platformVersion": "1.4.0", 
+                "id": "ecs-svc/0770016266606430171", 
+                "runningCount": 1
+            }, 
+            {
+                "status": "ACTIVE", 
+                "networkConfiguration": {
+                    "awsvpcConfiguration": {
+                        "subnets": [
+                            "subnet-075a80f3cb9525bc2", 
+                            "subnet-0ac4316ddb074ab05"
+                        ], 
+                        "securityGroups": [
+                            "sg-054e5385a361a166d"
+                        ], 
+                        "assignPublicIp": "DISABLED"
+                    }
+                }, 
+                "pendingCount": 0, 
+                "launchType": "FARGATE", 
+                "createdAt": 1615909149.132, 
+                "desiredCount": 1, 
+                "taskDefinition": "arn:aws:ecs:ap-southeast-1:150704819064:task-definition/sample-api:2", 
+                "updatedAt": 1615913018.785, 
+                "platformVersion": "1.4.0", 
+                "id": "ecs-svc/8297209967786370602", 
+                "runningCount": 1
+            }
+        ], 
+        "serviceName": "sample", 
+        "events": [
+            {
+                "message": "(service sample) has begun draining connections on 1 tasks.", 
+                "id": "67f41079-43dd-4004-92a6-3540d645421e", 
+                "createdAt": 1615913084.745
+            }, 
+            {
+                "message": "(service sample) deregistered 1 targets in (target-group arn:aws:elasticloadbalancing:ap-southeast-1:150704819064:targetgroup/sample-api-target-group/ea904198af579e70)", 
+                "id": "0ce11f1d-a787-47c9-aa52-efb8adda1a06", 
+                "createdAt": 1615913084.744
+            }, 
+            {
+                "message": "(service sample) registered 1 targets in (target-group arn:aws:elasticloadbalancing:ap-southeast-1:150704819064:targetgroup/sample-api-target-group/ea904198af579e70)", 
+                "id": "9fb34769-1875-4976-a134-2b3ef20c5a3b", 
+                "createdAt": 1615913047.539
+            }, 
+            {
+                "message": "(service sample) has started 1 tasks: (task 51fefeabd0824af594a142e3678a1787).", 
+                "id": "73f0b229-6550-41c7-9b23-bcf41ae678cc", 
+                "createdAt": 1615913019.109
+            }, 
+            {
+                "message": "(service sample) has reached a steady state.", 
+                "id": "881968a9-ff2a-4fcf-a465-603acfcd79c0", 
+                "createdAt": 1615909786.2
+            }, 
+            {
+                "message": "(service sample) (deployment ecs-svc/8297209967786370602) deployment completed.", 
+                "id": "b55a1f3c-db0a-4d2e-a219-f94bcd17528e", 
+                "createdAt": 1615909786.199
+            }, 
+            {
+                "message": "(service sample) registered 1 targets in (target-group arn:aws:elasticloadbalancing:ap-southeast-1:150704819064:targetgroup/sample-api-target-group/ea904198af579e70)", 
+                "id": "fb7e383b-52bc-400e-8387-4e44dfc7c4b8", 
+                "createdAt": 1615909767.159
+            }, 
+            {
+                "message": "(service sample) has started 1 tasks: (task eb07bb0671ac4045918d4d4076702130).", 
+                "id": "f7ddcea9-4c2a-4b04-9069-165e8c8c1809", 
+                "createdAt": 1615909738.614
+            }, 
+            {
+                "message": "(service sample) has started 1 tasks: (task 101f2578f0db44e9938d601a7dfcb160).", 
+                "id": "b773ab34-2ca9-4456-affe-23bef259af1d", 
+                "createdAt": 1615909670.065
+            }, 
+            {
+                "message": "(service sample) has started 1 tasks: (task 9f81bd07451347e2a263c0de49eb3e71).", 
+                "id": "ec4512e0-59df-4d94-aa95-259318ec3ac5", 
+                "createdAt": 1615909608.929
+            }, 
+            {
+                "message": "(service sample) has started 1 tasks: (task 857fa5626a5b491abac7fe68c3bf9e09).", 
+                "id": "4798a85b-929d-4d8e-9de5-46d4faa041b3", 
+                "createdAt": 1615909544.526
+            }, 
+            {
+                "message": "(service sample) has started 1 tasks: (task 756dd47c969143c89d09eaf6cc4321b2).", 
+                "id": "82948ddb-a746-4ebc-8877-db9b15350b22", 
+                "createdAt": 1615909413.983
+            }, 
+            {
+                "message": "(service sample) has started 1 tasks: (task c06cb6026e674538a3e3c802e588779e).", 
+                "id": "55bc268d-3592-490c-9942-f5c28fb11412", 
+                "createdAt": 1615909151.801
+            }
+        ], 
+        "runningCount": 2, 
+        "status": "ACTIVE", 
+        "serviceRegistries": [], 
+        "pendingCount": 0, 
+        "createdBy": "arn:aws:iam::150704819064:root", 
+        "platformVersion": "LATEST", 
+        "placementStrategy": [], 
+        "propagateTags": "NONE", 
+        "roleArn": "arn:aws:iam::150704819064:role/aws-service-role/ecs.amazonaws.com/AWSServiceRoleForECS", 
+        "taskDefinition": "arn:aws:ecs:ap-southeast-1:150704819064:task-definition/sample-api:7"
+    }
+}
+Finished: SUCCESS
