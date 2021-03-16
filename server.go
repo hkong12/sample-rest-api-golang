@@ -32,6 +32,7 @@ func main() {
 	e.Use(middleware.Recover())
 
 	// Routes
+	e.GET("/health", health)
 	e.GET("/fetchStudents", fetchStudents)
 	e.POST("/", createStudent)
 	e.PUT("/", updateStudent)
@@ -42,6 +43,10 @@ func main() {
 }
 
 // Handler
+func health(c echo.Context) error {
+	return c.NoContent(http.StatusOK)
+}
+
 func createStudent(c echo.Context) error {
 	stu := new(Student)
 	if err := c.Bind(stu); err != nil {
