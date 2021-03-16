@@ -186,6 +186,75 @@ resource "aws_ecs_cluster" "ecs" {
   }
 }
 
+# ECS service security group
+resource "aws_security_group" "ecs_sg" {
+  name        = "private_subnet"
+  description = "Allow http inbound traffic"
+  vpc_id      = aws_vpc.main.id
+
+  ingress {
+    description = "HTTP from VPC"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = local.public_subnet_cidrs
+  }
+}
+
+# ECS service
+resource "aws_ecs_service" "api" {
+  name            = "sample"
+  cluster         = aws_ecs_cluster.ecs.id
+  task_definition = aws_ecs_task_definition.api.arn
+  desired_count   = 1
+  launch_type     = "EC2"
+
+  load_balancer {
+    target_group_arn = aws_lb_target_group.target.arn
+    container_name   = "api"
+    container_port   = 1323
+  }
+
+  network_configuration {
+    subnets = aws_subnet.private.*.id
+    security_groups = [ aws_security_group.ecs_sg.id ] 
+  }
+
+  placement_constraints {
+    type       = "memberOf"
+    expression = "attribute:ecs.availability-zone in [ap-southeast-1a, ap-southeast-1b]"
+  }
+}
+
+# ECS task definition
+resource "aws_ecs_task_definition" "api" {
+  family                = "sample-api"
+  container_definitions = <<TASK_DEFINITION
+[
+    {
+      "name": "api",
+      "image": "xueerk/sample-api:7",
+      "cpu": 10,
+      "memory": 512,
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 80,
+          "hostPort": 80
+        }
+      ]
+    }
+]
+TASK_DEFINITION
+  network_mode          = "awsvpc"
+  requires_compatibilities = [ "EC2" ]
+
+  placement_constraints {
+    type       = "memberOf"
+    expression = "attribute:ecs.availability-zone in [ap-southeast-1a, ap-southeast-1b]"
+  }
+}
+
 # Output the URL of the ALB
 output "load_balancer_url" {
   value = aws_lb.alb.dns_name

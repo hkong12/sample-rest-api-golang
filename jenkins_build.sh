@@ -6,7 +6,7 @@ IMAGE_TAG=${BUILD_NUMBER}
 echo "Build started on `date`"
 echo "Building the Docker image..."   
 docker build -t $IMAGE_REPO_NAME:$IMAGE_TAG .
-
+docker push $IMAGE_REPO_NAME:$IMAGE_TAG 
 
 
 # SERVICE_NAME="flask-signup-service"
